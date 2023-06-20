@@ -1,6 +1,17 @@
-from flask import Flask, jsonify, send_from_directory, request
+from flask import Flask, jsonify, send_from_directory, request, render_template
 from flask_cors import CORS, cross_origin
 import os
+import shutil
+from work import Worker
+from PIL import Image
+from pathlib import Path
+import io
+from ultralytics import YOLO
+from ultralytics.yolo.v8.detect.predict import DetectionPredictor
+import locale
+locale.getpreferredencoding()
+locale.getpreferredencoding = lambda: "UTF-8"
+
 
 app = Flask(__name__)
 cors = CORS(app)
@@ -60,5 +71,69 @@ def get_slider_data():
     return jsonify(slider_data)
 
 
+@app.route('/api/detect')
+@cross_origin()
+def detect():
+    try:
+        # Worker()
+        data = {
+            "message": "Detection Completed successfully",
+            "status": 200
+        }
+        return jsonify(data)
+    except Exception as e:
+        data = {
+            "message": str(e),
+            "status": 400
+        }
+        print(e)
+        return jsonify(data)
+
+
+@app.route('/api/detect_on_image', methods=['GET', 'POST'])
+@cross_origin()
+def process_image():
+    if 'image' in request.files:
+        image = request.files['image']
+        input_file_path = 'static/uploads/' + image.filename
+        root = os.path.abspath(os.path.dirname(__file__))
+        segmented_path = Path(root, r'runs\segment')
+        image.save(input_file_path)
+        # Perform image processing here
+        model = YOLO(fr"body.pt")
+        results = model.predict(source=input_file_path, show=False, save=True)
+        root = os.path.abspath(os.path.dirname(__file__))
+        source = os.path.join(root, r'runs\segment\predict')
+        destination = os.path.join(root, fr'static\uploads')
+
+        if not os.path.exists(destination):
+            os.makedirs(destination)
+        # gather all files
+        allfiles = os.listdir(source)
+
+        # iterate on all files to move them to destination folder
+        for f in allfiles:
+            src_path = os.path.join(source, f)
+            dst_path = os.path.join(destination, f)
+            if os.path.exists(dst_path):
+                os.remove(dst_path)
+            os.rename(src_path, dst_path)
+        if os.path.exists(segmented_path):
+            shutil.rmtree(segmented_path)
+        print(f"Results Saved at {destination}")
+        # Return the URL or path of the processed image
+        data = {
+            "images": 'static/uploads/' + image.filename
+        }
+        return jsonify(data)
+    return 'Image upload failed.'
+
+
+@app.route('/')
+@cross_origin()
+def index():
+    return render_template('single.html')
+
+
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=False)
