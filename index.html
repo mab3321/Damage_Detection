@@ -15,6 +15,16 @@
             width: 100%;
             height: auto;
         }
+
+        .slider-heading {
+            text-align: center;
+            font-size: 24px;
+            margin-top: 20px;
+        }
+
+        #show-images-btn {
+            margin-top: 20px;
+        }
     </style>
 </head>
 
@@ -22,13 +32,16 @@
     <div class="container">
         <h1>Image Slider</h1>
         <button id="show-images-btn" class="btn btn-primary">Show Images</button>
-        <div class="swiper-container" style="display: none;">
-            <div class="swiper-wrapper">
-                <!-- Images will be dynamically added here -->
+        <div class="slider-container" style="display: none;">
+            <h2 class="slider-heading"></h2>
+            <div class="swiper-container">
+                <div class="swiper-wrapper">
+                    <!-- Images will be dynamically added here -->
+                </div>
+                <div class="swiper-pagination"></div>
+                <div class="swiper-button-next"></div>
+                <div class="swiper-button-prev"></div>
             </div>
-            <div class="swiper-pagination"></div>
-            <div class="swiper-button-next"></div>
-            <div class="swiper-button-prev"></div>
         </div>
     </div>
 
@@ -41,9 +54,15 @@
             // Button click event
             $('#show-images-btn').click(function () {
                 // Make an AJAX request to the API endpoint
-                $.get('http://127.0.0.1:5000/api/slider', function (slider_data) {
+                $.get('http://127.0.0.1:5000/api/slider', function (response) {
+                    // Hide the button
+                    $('#show-images-btn').hide();
+
                     // Show the slider container
-                    $('.swiper-container').show();
+                    $('.slider-container').show();
+
+                    // Set the slider heading
+                    $('.slider-heading').text(response.heading);
 
                     // Clear existing slides
                     if (swiper) {
@@ -63,10 +82,11 @@
                             el: '.swiper-pagination',
                             clickable: true,
                         },
+                        loop: true // Set loop option to true
                     });
-                    imageUrls = slider_data['image_urls']
+
                     // Add image slides
-                    imageUrls.forEach(function (imageUrl) {
+                    response.image_urls.forEach(function (imageUrl) {
                         var slideHtml = '<div class="swiper-slide"><img src="' + imageUrl + '" class="img-fluid"></div>';
                         swiper.appendSlide(slideHtml);
                     });
