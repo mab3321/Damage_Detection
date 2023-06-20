@@ -17,7 +17,7 @@ def predictor(source, weights, key, time_stamp_of_worker=''):
         model = YOLO(fr"{weights}")
         results = model.predict(source=source, show=False, save=True)
         source = os.path.join(root, r'runs\segment\predict')
-        destination = os.path.join(root, fr'results\{key}{str(time_stamp_of_worker)}')
+        destination = os.path.join(root, fr'results\{key}_{str(time_stamp_of_worker)}')
 
         if not os.path.exists(destination):
             os.makedirs(destination)
