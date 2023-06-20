@@ -13,6 +13,7 @@ locale.getpreferredencoding = lambda: "UTF-8"
 def predictor(source, weights, key, time_stamp_of_worker=''):
     try:
         root = os.path.abspath(os.path.dirname(__file__))
+        segmented_path = Path(root, r'runs\segment')
         model = YOLO(fr"{weights}")
         results = model.predict(source=source, show=False, save=True)
         source = os.path.join(root, r'runs\segment\predict')
@@ -28,8 +29,8 @@ def predictor(source, weights, key, time_stamp_of_worker=''):
             src_path = os.path.join(source, f)
             dst_path = os.path.join(destination, f)
             os.rename(src_path, dst_path)
-        if os.path.exists(source):
-            shutil.rmtree(source)
+        if os.path.exists(segmented_path):
+            shutil.rmtree(segmented_path)
         print(f"Results Saved at {destination}")
         return results
     except Exception as e:
@@ -48,7 +49,8 @@ def Worker():
         "weights": 'body.pt'
     }
     path_for_underbody = os.path.join(target_path, "data", "underbody")
-    path_for_underbody_oilLeakage = path_for_underbody_rust = path_for_underbody
+    path_for_underbody_oilLeakage = os.path.join(path_for_underbody, "oilLeakage")
+    path_for_underbody_rust = os.path.join(path_for_underbody, "rust")
     paths["underbody_oilLeakage"] = {
         "path": path_for_underbody_oilLeakage,
         "weights": 'oilLeakage.pt'
