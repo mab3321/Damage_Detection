@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, send_from_directory
+from flask import Flask, jsonify, send_from_directory, request
 from flask_cors import CORS
 import os
 
@@ -18,9 +18,15 @@ def get_image(filename):
 # API route to get image URLs and slider heading
 
 
-@app.route('/api/body')
+@app.route('/api/data')
 def get_slider_data():
     # Get all image filenames from the folder
+
+    category = request.args.get('category')
+    if category == "body":
+        IMAGE_FOLDER = rf'data\{category}'
+    else:
+        IMAGE_FOLDER = rf'data\underbody\{category}'
     image_files = os.listdir(IMAGE_FOLDER)
     image_urls = []
 
@@ -29,7 +35,7 @@ def get_slider_data():
         image_urls.append(f'{IMAGE_FOLDER}\\' + filename)
 
     slider_data = {
-        'heading': 'BODY',
+        'heading': f"{category if category != 'oilLeakage' else 'oil Leakage'}",
         'image_urls': image_urls
     }
 
