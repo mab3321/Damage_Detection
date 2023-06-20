@@ -18,7 +18,7 @@ def get_image(filename):
 # API route to get image URLs and slider heading
 
 
-@app.route('/api/slider')
+@app.route('/api/body')
 def get_slider_data():
     # Get all image filenames from the folder
     image_files = os.listdir(IMAGE_FOLDER)

@@ -22,7 +22,7 @@
             margin-top: 20px;
         }
 
-        #show-images-btn {
+        #show-images-btns {
             margin-top: 20px;
         }
     </style>
@@ -31,7 +31,11 @@
 <body>
     <div class="container">
         <h1>Image Slider</h1>
-        <button id="show-images-btn" class="btn btn-primary">Show Images</button>
+        <div id="show-images-btns">
+            <button class="btn btn-primary" data-category="body">Body</button>
+            <button class="btn btn-primary" data-category="rust">Rust</button>
+            <button class="btn btn-primary" data-category="spillage">Spillage</button>
+        </div>
         <div class="slider-container" style="display: none;">
             <h2 class="slider-heading"></h2>
             <div class="swiper-container">
@@ -52,11 +56,13 @@
             var swiper = null;
 
             // Button click event
-            $('#show-images-btn').click(function () {
-                // Make an AJAX request to the API endpoint
-                $.get('http://127.0.0.1:5000/api/slider', function (response) {
-                    // Hide the button
-                    $('#show-images-btn').hide();
+            $('#show-images-btns button').click(function () {
+                var category = $(this).data('category');
+
+                // Make an AJAX request to the respective API endpoint based on the category
+                $.get('http://127.0.0.1:5000/api/' + category, function (response) {
+                    // Hide the button container
+                    // $('#show-images-btns').hide();
 
                     // Show the slider container
                     $('.slider-container').show();
