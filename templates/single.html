@@ -32,6 +32,14 @@
   <body>
     <div class="container">
       <h1>Image Upload</h1>
+      <div class="form-group">
+        <label for="category-select">Select Category:</label>
+        <select class="form-control" id="category-select">
+          <option value="body">Body</option>
+          <option value="rust">Rust</option>
+          <option value="oilLeakage">Spillage</option>
+        </select>
+      </div>
       <div id="image-section">
         <input
           type="file"
@@ -42,6 +50,14 @@
         <button type="button" id="upload-btn" class="btn btn-primary">
           Upload
         </button>
+        <a
+          href="./detect.html"
+          type="button"
+          id="upload-btn"
+          class="btn btn-primary"
+        >
+          Detection Page
+        </a>
         <span class="loader"></span>
       </div>
       <div id="response-section" style="display: none">
@@ -60,18 +76,21 @@
             var formData = new FormData();
             formData.append("image", fileInput.files[0]);
 
+            var category = $("#category-select").val();
+            var url =
+              "http://127.0.0.1:5000/api/detect_on_image?category=" + category;
+
             // Show loader
             $("#upload-btn").prop("disabled", true);
             $(".loader").show();
 
             $.ajax({
-              url: "http://127.0.0.1:5000/api/detect_on_image",
+              url: url,
               type: "POST",
               data: formData,
               processData: false,
               contentType: false,
               success: function (response) {
-                //$("#image-section").hide();
                 $("#response-section").show();
                 $("#response-image").html(
                   '<img src="' + response.images + '" class="img-fluid">'

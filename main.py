@@ -75,7 +75,7 @@ def get_slider_data():
 @cross_origin()
 def detect():
     try:
-        # Worker()
+        Worker()
         data = {
             "message": "Detection Completed successfully",
             "status": 200
@@ -94,13 +94,14 @@ def detect():
 @cross_origin()
 def process_image():
     if 'image' in request.files:
+        category = request.args.get('category')
         image = request.files['image']
         input_file_path = 'static/uploads/' + image.filename
         root = os.path.abspath(os.path.dirname(__file__))
         segmented_path = Path(root, r'runs\segment')
         image.save(input_file_path)
         # Perform image processing here
-        model = YOLO(fr"body.pt")
+        model = YOLO(fr"{category}.pt")
         results = model.predict(source=input_file_path, show=False, save=True)
         root = os.path.abspath(os.path.dirname(__file__))
         source = os.path.join(root, r'runs\segment\predict')
@@ -133,6 +134,12 @@ def process_image():
 @cross_origin()
 def index():
     return render_template('single.html')
+
+
+@app.route('/detect.html')
+@cross_origin()
+def detect_html_file():
+    return render_template('detect.html')
 
 
 if __name__ == '__main__':
