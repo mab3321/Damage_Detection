@@ -20,17 +20,9 @@ RUN apt update \
 RUN apt upgrade --no-install-recommends -y openssl tar
 
 # Create working directory
-RUN mkdir -p /usr/src/ultralytics
-WORKDIR /usr/src/ultralytics
-
-# Copy contents
-# COPY . /usr/src/app  (issues as not a .git directory)
-RUN git clone https://github.com/ultralytics/ultralytics /usr/src/ultralytics
-ADD https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n.pt /usr/src/ultralytics/
 
 # Install pip packages
 RUN python3 -m pip install --upgrade pip wheel
-RUN pip install --no-cache -e . albumentations comet thop pycocotools onnx onnx-simplifier onnxruntime-gpu
 
 # Set environment variables
 ENV OMP_NUM_THREADS=1
