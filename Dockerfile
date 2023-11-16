@@ -1,37 +1,22 @@
-# Ultralytics YOLO 🚀, AGPL-3.0 license
-# Builds ultralytics/ultralytics:latest-cpu image on DockerHub https://hub.docker.com/r/ultralytics/ultralytics
-# Image is CPU-optimized for ONNX, OpenVINO and PyTorch YOLOv8 deployments
+# Use an official Miniconda runtime as a parent image
+FROM continuumio/miniconda3
 
-# Start FROM Ubuntu image https://hub.docker.com/_/ubuntu
-FROM ubuntu:22.10
+# Set the working directory in the container
+WORKDIR /app
 
-# Downloads to user config dir
-ADD https://ultralytics.com/assets/Arial.ttf https://ultralytics.com/assets/Arial.Unicode.ttf /root/.config/Ultralytics/
+# Copy the requirements.txt file into the container at /app
+COPY requirements.txt /app/requirements.txt
 
-# Install linux packages
-# g++ required to build 'tflite_support' package
-RUN apt update \
-    && apt install --no-install-recommends -y python3-pip git zip curl htop libgl1-mesa-glx libglib2.0-0 libpython3-dev gnupg g++
-# RUN alias python=python3
+# Create a Conda environment and activate it
+RUN conda create --name DamageDetection python=3.8
+SHELL ["conda", "run", "-n", "DamageDetection", "/bin/bash", "-c"]
 
-# Create working directory
-RUN mkdir -p /usr/src/ultralytics
-WORKDIR /usr/src/ultralytics
+# Install the required packages using pip
+RUN pip install --upgrade pip && \
+    pip install -r requirements.txt
 
-# Copy contents
-# COPY . /usr/src/app  (issues as not a .git directory)
-RUN git clone https://github.com/ultralytics/ultralytics /usr/src/ultralytics
-ADD https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n.pt /usr/src/ultralytics/
+# Copy the rest of the application code into the container at /app
+COPY . /app
 
-# Install pip packages
-RUN python3 -m pip install --upgrade pip wheel
-RUN pip install --no-cache -e . thop --extra-index-url https://download.pytorch.org/whl/cpu
-
-
-# Usage Examples -------------------------------------------------------------------------------------------------------
-
-# Build and Push
-# t=ultralytics/ultralytics:latest-cpu && sudo docker build -f docker/Dockerfile-cpu -t $t . && sudo docker push $t
-
-# Pull and Run
-# t=ultralytics/ultralytics:latest-cpu && sudo docker pull $t && sudo docker run -it --ipc=host -v "$(pwd)"/datasets:/usr/src/datasets $t
+# Specify the command to run on container start
+CMD exec gunicorn --bind :$PORT --workers 1 --threads 8 --timeout 0 main:app

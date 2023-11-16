@@ -7,52 +7,39 @@ from PIL import Image
 from pathlib import Path
 import io
 from ultralytics import YOLO
-from ultralytics.yolo.v8.detect.predict import DetectionPredictor
-import locale
-locale.getpreferredencoding()
-locale.getpreferredencoding = lambda: "UTF-8"
-
 
 app = Flask(__name__)
 cors = CORS(app)
 app.config['CORS_HEADERS'] = 'Content-Type'
+
 # Folder path where the images are located
-IMAGE_FOLDER = r'data\body'
+IMAGE_FOLDER = os.path.join('data','body')
 
 # Route to serve images
-
-
-def find_string_index(lst, target):
-    for idx, val in enumerate(lst):
-        if target in val:
-            return idx
-    return False
-
-
 @app.route('/images/<path:filename>')
 def get_image(filename):
     return send_from_directory(IMAGE_FOLDER, filename)
 
 # API route to get image URLs and slider heading
-
-
 @app.route('/api/data')
 @cross_origin()
 def get_slider_data():
     # Get all image filenames from the folder
-
     category = request.args.get('category')
+    
     # Get Latest Folders
-    directory = r'results'
+    directory = 'results'
     # Get all folders in the directory
     folders = [folder for folder in os.listdir(directory) if os.path.isdir(os.path.join(directory, folder))]
 
     # Sort the folders based on timestamps
     sorted_folders = sorted(folders, key=lambda x: x.rsplit('_')[-1])
     selected_folder = sorted_folders[-3:]
-    index = find_string_index(selected_folder, category)
-    if type(index) is int:
-        IMAGE_FOLDER = rf'{directory}\{selected_folder[index]}'
+    
+    index = next((i for i, folder in enumerate(selected_folder) if category in folder), None)
+    
+    if index is not None:
+        IMAGE_FOLDER = os.path.join(directory, selected_folder[index])
     else:
         print("Folder not found")
 
@@ -61,7 +48,7 @@ def get_slider_data():
 
     # Create the URLs for the images
     for filename in image_files:
-        image_urls.append(f'{IMAGE_FOLDER}\\' + filename)
+        image_urls.append(os.path.join(IMAGE_FOLDER, filename))
 
     slider_data = {
         'heading': f"{category if category != 'oilLeakage' else 'oil Leakage'}",
@@ -69,7 +56,6 @@ def get_slider_data():
     }
 
     return jsonify(slider_data)
-
 
 @app.route('/api/detect')
 @cross_origin()
@@ -96,16 +82,16 @@ def process_image():
     if 'image' in request.files:
         category = request.args.get('category')
         image = request.files['image']
-        input_file_path = 'static/uploads/' + image.filename
+        input_file_path = os.path.join('static','uploads' + image.filename)
         root = os.path.abspath(os.path.dirname(__file__))
-        segmented_path = Path(root, r'runs\segment')
+        segmented_path = Path(root, 'runs','segment')
         image.save(input_file_path)
         # Perform image processing here
         model = YOLO(fr"{category}.pt")
         results = model.predict(source=input_file_path, show=False, save=True)
         root = os.path.abspath(os.path.dirname(__file__))
-        source = os.path.join(root, r'runs\segment\predict')
-        destination = os.path.join(root, fr'static\uploads')
+        source = os.path.join(root, 'runs','segment','predict')
+        destination = os.path.join(root, 'static','uploads')
 
         if not os.path.exists(destination):
             os.makedirs(destination)
@@ -123,8 +109,9 @@ def process_image():
             shutil.rmtree(segmented_path)
         print(f"Results Saved at {destination}")
         # Return the URL or path of the processed image
+        result_image_path = os.path.join('static','uploads' , image.filename)
         data = {
-            "images": 'static/uploads/' + image.filename
+            "images": result_image_path
         }
         return jsonify(data)
     return 'Image upload failed.'
@@ -143,4 +130,4 @@ def detect_html_file():
 
 
 if __name__ == '__main__':
-    app.run(debug=False)
+    app.run(debug=False, host="0.0.0.0", port=5000)

@@ -13,11 +13,11 @@ locale.getpreferredencoding = lambda: "UTF-8"
 def predictor(source, weights, key, time_stamp_of_worker=''):
     try:
         root = os.path.abspath(os.path.dirname(__file__))
-        segmented_path = Path(root, r'runs\segment')
+        segmented_path = Path(root, os.path.join('runs','segment'))
         model = YOLO(fr"{weights}")
         results = model.predict(source=source, show=False, save=True)
-        source = os.path.join(root, r'runs\segment\predict')
-        destination = os.path.join(root, fr'results\{key}_{str(time_stamp_of_worker)}')
+        source = os.path.join(root, os.path.join('runs','segment','predict'))
+        destination = os.path.join(root, os.path.join('results',f'{key}_{str(time_stamp_of_worker)}'))
 
         if not os.path.exists(destination):
             os.makedirs(destination)

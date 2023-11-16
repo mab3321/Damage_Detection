@@ -2,11 +2,10 @@
 # Usage: pip install -r requirements.txt
 
 # Base ----------------------------------------
-Flask==2.0.0
+Flask==3.0.0
 Flask-Cors==3.0.10
-ultralytics
-Jinja2==3.0.0
-jinja2-time==0.2.0
+gunicorn
+ultralytics==8.0.113
 pathlib
 Locales
 matplotlib>=3.2.2
